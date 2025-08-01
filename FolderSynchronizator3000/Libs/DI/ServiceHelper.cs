@@ -1,4 +1,7 @@
 ﻿using FolderSynchronizator3000.Libs.ArgsParser;
+using FolderSynchronizator3000.Libs.Helpers;
+using FolderSynchronizator3000.Libs.Logging;
+using FolderSynchronizator3000.Libs.Sync;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
@@ -15,6 +18,9 @@ internal class ServiceHelper
         services.AddTransient<App>();
 
         services.AddSingleton<IParser, Parser>();
+        services.AddSingleton<ISyncker, Syncker>();
+        services.AddSingleton<ILog, Log>();
+        services.AddSingleton<IFileHelper, FileHelper>();
 
         _serviceProvider = services.BuildServiceProvider();
 

@@ -1,46 +1,42 @@
-﻿using FolderSynchronizator3000.Libs.ArgsParser;
+﻿using FolderSynchronizator3000.Libs;
+using FolderSynchronizator3000.Libs.ArgsParser;
+using FolderSynchronizator3000.Libs.Logging;
+using FolderSynchronizator3000.Libs.Sync;
+using FolderSynchronizator3000.Models;
 
 namespace FolderSynchronizator3000;
-//["-source", "C:\\installDir", "-replica", "C:\\installDir_replica", "-interval", "16", "-logPath", "\\logs\\log.txt"]
-internal class App(IParser parser)
+//["-source", "C:\\installDir", "-replica", "C:\\installDir_replica", "-interval", "16", "-logPath", "\\logsssss\\log.txt"]
+internal class App(IParser parser, ISyncker syncker, ILog log)
 {
     private readonly IParser _parser = parser ?? throw new ArgumentNullException(nameof(parser));
+    private readonly ISyncker _syncker = syncker ?? throw new ArgumentNullException(nameof(syncker));
+    private readonly ILog _log = log ?? throw new ArgumentNullException(nameof(log));
 
     private bool exitProgram = false;
 
     public void Run(string[] args)
     {
-        var isParsed = _parser.ParseArguments(["-source", "C:\\installDir", "-replica", "C:\\installDir_replica", "-interval", "16", "-logPath", "\\logs\\log.txt"], out Dictionary<string, string> parsedArgs);
+        var isParsed = _parser.ParseArguments(args, out var parsedArgs);
 
         if (!isParsed)
             Environment.Exit(1);
 
-        Syncronization(parsedArgs["-interval"]);
+        Initialize(parsedArgs.LogPath);
+        Syncronization(parsedArgs);
         Listening();
 
         Thread.Sleep(1 * 1000);
     }
 
-    private void Syncronization(string interval)
+    private void Syncronization(Arguments args)
     {
-        int.TryParse(interval, out int period);
-
-        ////initialize greeting and logs
-        //Initialize.Init();
-        //var logger = Initialize.InitLogger(parsedArgs["-logPath"]);
-
-        //;
-        //string sourcePath = parsedArgs["-source"];
-        //string replicaPath = parsedArgs["-replica"];
-
         Task.Run(() =>
         {
             while (!exitProgram)
             {
-                //Syncker.Sync(sourcePath, replicaPath, logger);
-                //ConsoleWriter.Message("Listen for new content...");
+                _syncker.Sync(args.Source, args.Replica);
 
-                for (int i = period; i > 0 && !exitProgram; i--)
+                for (int i = args.Interval; i > 0 && !exitProgram; i--)
                 {
                     Console.Write($"\rNext sync in {i} second(s)...");
                     Thread.Sleep(1000);
@@ -58,10 +54,16 @@ internal class App(IParser parser)
             var key = Console.ReadKey(true);
             if (key.Key == ConsoleKey.E)
             {
-                //ConsoleWriter.Message("\n'E' pressed. Exiting...");
+                Console.Write("\n'E' pressed. Exiting...");
                 exitProgram = true;
                 break;
             }
         }
+    }
+
+    private void Initialize(string logPath)
+    {
+        _log.Init(logPath);
+        Greeting.WriteGreeting();
     }
 }

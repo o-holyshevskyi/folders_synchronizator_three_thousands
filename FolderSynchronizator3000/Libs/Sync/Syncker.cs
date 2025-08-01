@@ -1,20 +1,24 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using FolderSynchronizator3000.Libs.Helpers;
+using FolderSynchronizator3000.Libs.Logging;
 
 namespace FolderSynchronizator3000.Libs.Sync;
 
-internal class Syncker
+internal class Syncker(ILog log, IFileHelper fileHelper) : ISyncker
 {
-    public static void Sync(string sourcePath, string replicaPath, ILogger<Program> logger)
+    public readonly ILog _log = log ?? throw new ArgumentNullException(nameof(log));
+    public readonly IFileHelper _fileHelper = fileHelper ?? throw new ArgumentNullException(nameof(fileHelper));
+
+    public void Sync(string sourcePath, string replicaPath)
     {
         if (StartSyncFiles(sourcePath, replicaPath))
         {
-            ConsoleWriter.WarningMessage("All files are equal. Sync will not be performed!");
+            _log.LogMessage("All files are equal. Sync will not be performed!");
         }
         else
         {
-            ConsoleWriter.WarningMessage($"Detected outdated files in: '{replicaPath}'. Performing sync...");
+            _log.LogMessage($"Detected outdated files in: '{replicaPath}'. Performing sync...");
             PerformSync(sourcePath, replicaPath);
-            ConsoleWriter.SuccessMessage("All files are synced successfully!");
+            _log.LogMessage("All files are synced successfully!");
         }
     }
 
@@ -22,11 +26,12 @@ internal class Syncker
         Comparer.CompareDirectories(sourcePath, replicaPath) &&
         Comparer.CompareFiles(sourcePath, replicaPath);
 
-    private static void PerformSync(string source, string destination)
+    private void PerformSync(string source, string destination)
     {
         var sDirInfo = new DirectoryInfo(source);
         var dDirInfo = new DirectoryInfo(destination);
 
+        // Sync dirs
         var sDirs = sDirInfo.GetDirectories();
         var dDirs = dDirInfo.GetDirectories();
         var dDirsDict = dDirs.ToDictionary(f => f.Name, StringComparer.OrdinalIgnoreCase);
@@ -36,7 +41,7 @@ internal class Syncker
             var redundantDirs = dDirs
                 .Where(d => !sDirs.Any(s => s.Name.Equals(d.Name, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
-            FileHelper.RemoveDirs(redundantDirs);
+            _fileHelper.RemoveDirs(redundantDirs);
         }
 
         foreach (var sDir in sDirs)
@@ -46,7 +51,7 @@ internal class Syncker
             if (!dDirsDict.TryGetValue(sDir.Name, out var dDir) ||
                 !Comparer.DirsAreEqual(sDir.FullName, dDir.FullName))
             {
-                FileHelper.CreateDir(sDir, dDirInfo.FullName);
+                _fileHelper.CreateDir(sDir, dDirInfo.FullName);
             }
 
             PerformSync(sDir.FullName, newDestPath);
@@ -62,7 +67,7 @@ internal class Syncker
             var redundantFiles = dFiles
                 .Where(d => !sFiles.Any(s => s.Name.Equals(d.Name, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
-            FileHelper.RemoveFiles(redundantFiles);
+            _fileHelper.RemoveFiles(redundantFiles);
         }
 
         foreach (var sFile in sFiles)
@@ -70,7 +75,7 @@ internal class Syncker
             if (!dFilesDict.TryGetValue(sFile.Name, out var dFile) ||
                 !Comparer.FilesAreEqual(sFile.FullName, dFile.FullName))
             {
-                FileHelper.MoveFiles(sFile, dDirInfo.FullName);
+                _fileHelper.MoveFiles(sFile, dDirInfo.FullName);
             }
         }
     }

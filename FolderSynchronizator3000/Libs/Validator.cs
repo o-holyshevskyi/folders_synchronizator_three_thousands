@@ -1,4 +1,6 @@
-﻿namespace FolderSynchronizator3000.Libs;
+﻿using FolderSynchronizator3000.Libs.Logging;
+
+namespace FolderSynchronizator3000.Libs;
 
 internal enum CmdArgs
 {
@@ -32,17 +34,17 @@ internal class Validator
     {
         if (string.IsNullOrWhiteSpace(path))
         {
-            ConsoleWriter.ErrorMessage(string.Format("Path for '{0}' must not be empty or white space!", arg.ToString().ToLower()));
+            Console.Write(string.Format("Path for '{0}' must not be empty or white space!", arg.ToString().ToLower()));
             return false;
         }
         else if (!Path.IsPathRooted(path))
         {
-            ConsoleWriter.ErrorMessage(string.Format("Path for '{0}' must be absolute path!", arg.ToString().ToLower()));
+            Console.Write(string.Format("Path for '{0}' must be absolute path!", arg.ToString().ToLower()));
             return false;
         }
         else if (arg != CmdArgs.Log && !Directory.Exists(path))
         {
-            ConsoleWriter.ErrorMessage(string.Format("Path for '{0}' does not exists, please provide valid path!", arg.ToString().ToLower()));
+            Console.Write(string.Format("Path for '{0}' does not exists, please provide valid path!", arg.ToString().ToLower()));
             return false;
         }
 
@@ -55,12 +57,12 @@ internal class Validator
 
         if (!isParsed)
         {
-            ConsoleWriter.ErrorMessage("Interval value must be an integer");
+            Console.Write("Interval value must be an integer");
             return false;
         }
         else if (interval <= 15)
         {
-            ConsoleWriter.ErrorMessage("Interval value must be grater than 15");
+            Console.Write("Interval value must be grater than 15");
             return false;
         }
 
