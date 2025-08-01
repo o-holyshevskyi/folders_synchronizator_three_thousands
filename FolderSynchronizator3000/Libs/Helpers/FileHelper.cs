@@ -1,4 +1,5 @@
 ﻿using FolderSynchronizator3000.Libs.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace FolderSynchronizator3000.Libs.Helpers;
 
@@ -20,11 +21,12 @@ internal class FileHelper(ILog log) : IFileHelper
             string copyDestDir = Path.Combine(destDir, Path.GetFileName(fileInfo.FullName));
             fileInfo.CopyTo(destPath, true);
             _log.LogMessage(
-                $"File '{Path.GetFileName(fileInfo.FullName)}' successfully moved from '{fileInfo.FullName}' to '{copyDestDir}'");
+                $"File '{Path.GetFileName(fileInfo.FullName)}' successfully moved from '{fileInfo.FullName}' to '{copyDestDir}'",
+                LogLevel.Information);
         }
         catch (Exception ex)
         {
-            _log.LogMessage(ex.Message);
+            _log.LogMessage(ex.Message, LogLevel.Error);
             throw;
         }
     }
@@ -40,12 +42,13 @@ internal class FileHelper(ILog log) : IFileHelper
             {
                 Directory.CreateDirectory(dirPath);
                 _log.LogMessage(
-                    $"Directory '{dirPath}' successfully created from '{dirInfo.FullName}' to '{dirPath}'");
+                    $"Directory '{dirPath}' successfully created from '{dirInfo.FullName}' to '{dirPath}'",
+                    LogLevel.Information);
             }
         }
         catch (Exception ex)
         {
-            _log.LogMessage(ex.Message);
+            _log.LogMessage(ex.Message, LogLevel.Error);
             throw;
         }
     }
@@ -53,7 +56,7 @@ internal class FileHelper(ILog log) : IFileHelper
     public void RemoveDir(DirectoryInfo dirInfo)
     {
         dirInfo.Delete(true);
-        _log.LogMessage($"Directory '{dirInfo.Name}' successfully removed from '{dirInfo.Parent}'");
+        _log.LogMessage($"Directory '{dirInfo.Name}' successfully removed from '{dirInfo.Parent}'", LogLevel.Warning);
     }
 
     public void RemoveDirs(List<DirectoryInfo> dirInfoList) => dirInfoList.ForEach(RemoveDir);
@@ -61,7 +64,7 @@ internal class FileHelper(ILog log) : IFileHelper
     public void RemoveFile(FileInfo fileInfo)
     {
         fileInfo.Delete();
-        _log.LogMessage($"File '{fileInfo.Name}' successfully removed from '{fileInfo.DirectoryName}'");
+        _log.LogMessage($"File '{fileInfo.Name}' successfully removed from '{fileInfo.DirectoryName}'", LogLevel.Warning);
     }
 
     public void RemoveFiles(List<FileInfo> dirInfoList) => dirInfoList.ForEach(RemoveFile);

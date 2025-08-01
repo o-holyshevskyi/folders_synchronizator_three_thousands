@@ -7,9 +7,9 @@ internal class Log : ILog
 {
     private ILogger<Program> _logger;
 
-    public void LogMessage(string message)
+    public void LogMessage(string message, LogLevel logLevel)
     {
-        _logger.LogInformation(message);
+        _logger.Log(logLevel, message);
         Console.WriteLine(message);
     }
 

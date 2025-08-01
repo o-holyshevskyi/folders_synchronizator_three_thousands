@@ -1,5 +1,6 @@
 ﻿using FolderSynchronizator3000.Libs.Helpers;
 using FolderSynchronizator3000.Libs.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace FolderSynchronizator3000.Libs.Sync;
 
@@ -12,13 +13,13 @@ internal class Syncker(ILog log, IFileHelper fileHelper) : ISyncker
     {
         if (StartSyncFiles(sourcePath, replicaPath))
         {
-            _log.LogMessage("All files are equal. Sync will not be performed!");
+            _log.LogMessage("All files are equal. Sync will not be performed!", LogLevel.Information);
         }
         else
         {
-            _log.LogMessage($"Detected outdated files in: '{replicaPath}'. Performing sync...");
+            _log.LogMessage($"Detected outdated files in: '{replicaPath}'. Performing sync...", LogLevel.Information);
             PerformSync(sourcePath, replicaPath);
-            _log.LogMessage("All files are synced successfully!");
+            _log.LogMessage("All files are synced successfully!", LogLevel.Information);
         }
     }
 
